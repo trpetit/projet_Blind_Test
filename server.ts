@@ -460,55 +460,39 @@ io.on("connection", (socket) => {
     io.to(roomCode).emit("play_buzzer_sound");
   });
 
-  // Submit Guess
-  socket.on("submit_guess", ({ roomCode, artistInput, titleInput }) => {
+  // DJ Award Points (Buzzer-only Mode)
+  socket.on("dj_award_points", ({ roomCode, points, type }) => {
     const room = rooms[roomCode];
-    if (!room || !room.isBuzzed || room.buzzedPlayerId !== socket.id) return;
+    if (!room || room.hostId !== socket.id || !room.isBuzzed) return;
 
+    const playerId = room.buzzedPlayerId;
+    if (!playerId) return;
+
+    const player = room.players[playerId];
     const currentTrack = room.tracks[room.currentIndex];
-    if (!currentTrack) return;
+    if (!player || !currentTrack) return;
 
-    let pointsAwarded = 0;
-    let artistCorrect = false;
-    let titleCorrect = false;
-
-    if (!room.artistGuessedThisRound && artistInput) {
-      if (compareTexts(artistInput, currentTrack.artist, true)) {
-        artistCorrect = true;
-        pointsAwarded += 1;
-      }
-    }
-
-    if (!room.titleGuessedThisRound && titleInput) {
-      if (compareTexts(titleInput, currentTrack.title, false)) {
-        titleCorrect = true;
-        pointsAwarded += 1;
-      }
-    }
-
-    const player = room.players[socket.id];
-    if (player) {
-      player.score += pointsAwarded;
-    }
+    // Apply score
+    player.score += points;
 
     let feedbackText = "";
-    if (artistCorrect && titleCorrect) {
-      feedbackText = `🔥 Incroyable ! +2 pts pour ${player.name} (Artiste et Titre trouvés !)`;
+    if (type === "both" || points === 2) {
+      feedbackText = `🔥 Incroyable ! +2 pts pour ${player.name} (Artiste & Titre trouvés !)`;
       room.artistGuessedThisRound = true;
       room.titleGuessedThisRound = true;
-    } else if (artistCorrect) {
+    } else if (type === "artist") {
       feedbackText = `🎵 Bravo ! +1 pt Artiste pour ${player.name} (${currentTrack.artist})`;
       room.artistGuessedThisRound = true;
-    } else if (titleCorrect) {
+    } else if (type === "title") {
       feedbackText = `🎸 Excellent ! +1 pt Titre pour ${player.name} (${currentTrack.title})`;
       room.titleGuessedThisRound = true;
     } else {
-      feedbackText = `❌ Faux... Pas de points pour ${player.name} ! Le jeu reprend...`;
+      feedbackText = `❌ Faux... Pas de point pour ${player.name} ! Le jeu reprend...`;
     }
 
     const isAllGuessed = room.artistGuessedThisRound && room.titleGuessedThisRound;
 
-    if (isAllGuessed) {
+    if (isAllGuessed || type === "both" || points === 2) {
       room.isRevealed = true;
       room.isBuzzed = false;
       room.buzzedPlayerId = null;
@@ -519,7 +503,7 @@ io.on("connection", (socket) => {
       }
 
       io.to(roomCode).emit("guess_feedback", {
-        success: true,
+        success: points > 0,
         text: feedbackText,
         scores: Object.values(room.players).map(p => ({ id: p.id, name: p.name, score: p.score })),
       });
@@ -530,7 +514,7 @@ io.on("connection", (socket) => {
       room.buzzedPlayerName = null;
 
       io.to(roomCode).emit("guess_feedback", {
-        success: pointsAwarded > 0,
+        success: points > 0,
         text: feedbackText,
         scores: Object.values(room.players).map(p => ({ id: p.id, name: p.name, score: p.score })),
       });
