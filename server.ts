@@ -272,6 +272,7 @@ interface Room {
   players: { [socketId: string]: Player };
   artistGuessedThisRound: boolean;
   titleGuessedThisRound: boolean;
+  isStarted: boolean;
 }
 
 const rooms: { [code: string]: Room } = {};
@@ -314,6 +315,7 @@ function getCleanRoomState(roomCode: string) {
     players: playersArray,
     artistGuessedThisRound: room.artistGuessedThisRound,
     titleGuessedThisRound: room.titleGuessedThisRound,
+    isStarted: room.isStarted,
     track: currentTrack ? {
       id: currentTrack.id,
       previewUrl: currentTrack.previewUrl,
@@ -353,6 +355,7 @@ io.on("connection", (socket) => {
       players: { [socket.id]: player },
       artistGuessedThisRound: false,
       titleGuessedThisRound: false,
+      isStarted: false,
     };
 
     socket.join(roomCode);
@@ -426,6 +429,7 @@ io.on("connection", (socket) => {
     const room = rooms[roomCode];
     if (!room || room.hostId !== socket.id || room.tracks.length === 0) return;
 
+    room.isStarted = true;
     room.currentIndex = 0;
     startTrack(roomCode);
   });
