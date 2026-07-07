@@ -19,6 +19,12 @@ export default function MultiplayerGameView({ socket, initialRoomState, isHost, 
   const [gameResult, setGameResult] = useState<{ rankings: any[] } | null>(null);
   const [showQuitConfirm, setShowQuitConfirm] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const roomRef = useRef<any>(room);
+
+  // Sync roomRef with state changes
+  useEffect(() => {
+    roomRef.current = room;
+  }, [room]);
 
   // Initialize client-side Audio
   useEffect(() => {
@@ -84,7 +90,7 @@ export default function MultiplayerGameView({ socket, initialRoomState, isHost, 
     };
 
     const handleResumeAudio = () => {
-      if (audioRef.current && room?.isPlaying) {
+      if (audioRef.current && roomRef.current?.isPlaying) {
         audioRef.current.play().catch((err) => console.log("Play failed on resume:", err));
       }
     };
@@ -116,7 +122,7 @@ export default function MultiplayerGameView({ socket, initialRoomState, isHost, 
       socket.off("game_over", handleGameOver);
       socket.off("error_msg", handleErrorMsg);
     };
-  }, [socket, room?.isPlaying, onQuit]);
+  }, [socket, onQuit]);
 
   const handleTogglePlay = () => {
     playClickSound();
