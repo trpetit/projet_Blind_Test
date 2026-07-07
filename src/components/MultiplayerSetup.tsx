@@ -69,13 +69,7 @@ export default function MultiplayerSetup({ onBack, onStartMultiplayerGame }: Mul
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    return () => {
-      if (socket) {
-        socket.disconnect();
-      }
-    };
-  }, [socket]);
+
 
   const initSocket = () => {
     if (socket) return socket;
