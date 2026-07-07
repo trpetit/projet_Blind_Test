@@ -1,0 +1,6 @@
+{
+  "name": "Blind Test Party",
+  "description": "Un jeu de blind test musical tactile et immersif. Jouez seul en important vos fichiers MP3 ou en chargeant des playlists de streaming (Deezer). Lancez aussi le mode multi-joueurs en ligne : un joueur est le DJ, les autres rejoignent avec un code pour buzzer et s'affronter en temps réel !",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
