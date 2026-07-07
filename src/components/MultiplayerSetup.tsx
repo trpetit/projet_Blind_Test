@@ -104,7 +104,7 @@ export default function MultiplayerSetup({ onBack, onStartMultiplayerGame }: Mul
       setIsLoading(false);
       
       // If the game started (has tracks and state is active)
-      if (state && state.tracks && state.totalTracks > 0 && state.isPlaying) {
+      if (state && state.totalTracks > 0 && state.isStarted) {
         // Automatically start game screen
         onStartMultiplayerGame(s, state, s.id === state.hostId, playerName);
       }
